@@ -1,0 +1,223 @@
+from collections import deque
+from random import *
+#Undirected graph using an adjacency list
+class Graph:
+
+    def __init__(self, n):
+        self.adj = {}
+        for i in range(n):
+            self.adj[i] = []
+
+    def are_connected(self, node1, node2):
+        return node2 in self.adj[node1]
+
+    def adjacent_nodes(self, node):
+        return self.adj[node]
+
+    def add_node(self):
+        self.adj[len(self.adj)] = []
+
+    def add_edge(self, node1, node2):
+        if node1 not in self.adj[node2]:
+            self.adj[node1].append(node2)
+            self.adj[node2].append(node1)
+
+    def number_of_nodes(self):
+        return len(self.adj)
+
+
+#Breadth First Search
+def BFS(G, node1, node2):
+    Q = deque([node1])
+    marked = {node1 : True}
+    for node in G.adj:
+        if node != node1:
+            marked[node] = False
+    while len(Q) != 0:
+        current_node = Q.popleft()
+        for node in G.adj[current_node]:
+            if node == node2:
+                return True
+            if not marked[node]:
+                Q.append(node)
+                marked[node] = True
+    return False
+
+
+
+def BFS2(G, node1, node2):
+    explored = []
+    queue = [[node1]]
+    if node1 == node2:
+        return node1
+    while queue:
+        path = queue.pop(0)
+        node = path[-1]
+        if node not in explored:
+            neighbours = G.adjacent_nodes(node)
+            for neighbour in neighbours:
+                new_path = list(path)
+                new_path.append(neighbour)
+                queue.append(new_path)
+                if neighbour == node2:
+                    return new_path
+            explored.append(node)
+    return []
+
+
+
+
+
+#Depth First Search
+def DFS(G, node1, node2):
+    S = [node1]
+    marked = {}
+    for node in G.adj:
+        marked[node] = False
+    while len(S) != 0:
+        current_node = S.pop()
+        if not marked[current_node]:
+            marked[current_node] = True
+            for node in G.adj[current_node]:
+                if node == node2:
+                    return True
+                S.append(node)
+    return False
+
+
+def DFS2(G, start, end):
+    if start == end:
+        return [start]
+    queue = [[start]]
+    marked = {node: False for node in G.adj}
+    for node in G.adj:
+        marked[node] = False
+    while len(queue) > 0:
+        path = queue.pop()
+        node = path[-1]
+        if not marked[node]:
+            for nodes in G.adjacent_nodes(node):
+                path.append(nodes)
+                if (nodes == end):
+                    return path
+                queue.append(path.copy())
+                path.pop()
+            marked[node] = True
+    return []
+
+def is_connected(G):
+    for i in range(0, G.number_of_nodes()):
+        for j in range(i + 1, G.number_of_nodes()):
+            if not BFS(G, i, j):
+                return False
+    return True
+
+
+def test_cycle(c):
+    cycle = 0
+    connected = 0
+    for i in range(c):
+        graphTest = Graph(100)
+        randList = []
+        while len(randList) < i:
+            pair = [randint(0, 99), randint(0, 99)]
+            if pair[0] != pair[1] and pair not in randList and pair.reverse() not in randList:
+                randList.append(pair)
+                graphTest.add_edge(pair[0], pair[1])
+        #print(randList)
+        #print(is_connected(graphTest))
+        if (has_cycle(graphTest)):
+            cycle+=1
+        if (is_connected(graphTest)):
+            connected += 1
+    return cycle
+    #print("Has cycle: " + str(cycle))
+    #print("Is connected: " + str(connected))
+    #print("Has cycle portion: " + str(cycle*100/c))
+    #print("Is connected portion: " + str(connected*100/c))
+        #print(graphTest.adj)
+
+def test_connected(c):
+    cycle = 0
+    connected = 0
+    for i in range(c):
+        graphTest = Graph(100)
+        randList = []
+        while len(randList) < i:
+            pair = [randint(0, 99), randint(0, 99)]
+            if pair[0] != pair[1] and pair not in randList and pair.reverse() not in randList:
+                randList.append(pair)
+                graphTest.add_edge(pair[0], pair[1])
+        #print(randList)
+        #print(is_connected(graphTest))
+        if (has_cycle(graphTest)):
+            cycle+=1
+        if (is_connected(graphTest)):
+            connected += 1
+    return connected
+
+def finalTest():
+    counter = 0
+    cycle = 0
+    c = 30
+    while counter < 3:
+        cycle = 0
+        for _ in range(100):
+            if (test_cycle(c) != 0):
+                cycle += 1
+        c += 1
+        cycle = cycle/100
+        if cycle == 1:
+            counter += 1
+        print(str(c) + " " + str(cycle))
+    print("When c is 30, " + str(cycle/10) + "% of the graph have cycles.")
+
+    counter2 = 0
+    cycle_portion = 0
+    connect_portion = 0
+    i = 0
+    j = 0
+    while counter2 < 3:
+        cycle_portion = 0
+        for _ in range(100):
+            if (test_cycle(i) != 0):
+                cycle_portion += 1
+        i += 1
+        cycle_portion = cycle_portion/100
+        if cycle_portion > 0.5:
+            counter2 += 1
+        print(str(i) + " " + str(cycle_portion))
+    print("When c is " + str(i) + ", 50% of the graph have cycles.")
+
+    while connect_portion < 0.5:
+        connect_portion = 0
+        for _ in range(100):
+            if (test_connected(j) != 0):
+                connect_portion += 1
+        j += 1
+        connect_portion = connect_portion/100
+        print(str(j) + " " + str(connect_portion))
+    print("When c is " + str(j) + ", 50% of the graph is connected.")
+    return
+
+
+def has_cycle(G):
+    vertexes = G.adj
+    for i in range(len(vertexes)):
+        current = list(vertexes)[i]
+        queue = deque([current])
+        marked = {current: True}
+        for node in G.adj:
+            if node != current:
+                marked[node] = False
+        while len(queue) != 0:
+            temp = queue.popleft()
+            for node in G.adj[temp]:
+                if not marked[node]:
+                    marked[node] = True
+                    queue.append(node)
+                elif node in queue:
+                    return True
+    return False
+
+finalTest()
